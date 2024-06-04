@@ -29,7 +29,7 @@ const nodeBzip2 = bindings('node_bzip2');
  * @param {CompressionOptions} [options] Configuration for the compression.
  * @returns {Buffer} The compressed data.
  */
-export function compress(data, options) {
+function compress(data, options) {
 	return nodeBzip2.compress(data, options);
 }
 
@@ -39,6 +39,11 @@ export function compress(data, options) {
  * @param {DecompressionOptions} [options] Configuration for the decompression.
  * @returns {Buffer} The decompressed data.
  */
-export function decompress(data, options) {
+function decompress(data, options) {
 	return nodeBzip2.decompress(data, options);
 }
+
+module.exports = {
+	compress,
+	decompress
+};
