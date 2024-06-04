@@ -51,3 +51,6 @@ try {
 		throw error;
 	}
 }
+
+console.log('options.js: OK');
+process.exit(0);
