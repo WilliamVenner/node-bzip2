@@ -4,6 +4,7 @@
 	"description": "NodeJS bindings for BZip2",
 	"main": "src/node-bzip2.js",
 	"scripts": {
+		"install": "node-gyp rebuild --release",
 		"test": "node test/compression.js && node test/options.js"
 	},
 	"keywords": [

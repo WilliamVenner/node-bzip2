@@ -77,7 +77,7 @@ int CompressRawUnbuffered(const char *data, const size_t length, std::string &ou
 	{
 		out.resize(length + length / 100 + 600);
 	}
-	catch (std::bad_alloc &e)
+	catch (std::bad_alloc &)
 	{
 		return BZ_MEM_ERROR;
 	}

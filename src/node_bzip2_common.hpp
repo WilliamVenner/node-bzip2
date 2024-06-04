@@ -4,10 +4,13 @@
 
 #include <node.h>
 #include <nan.h>
-#include <bzlib.h>
+
+extern "C" {
+	#include "../lib/bzip2/bzlib.h"
+}
 
 #define AUTO_BUFFERING_THRESHOLD 1073741824 // 1 GiB
-#define INVALID_JS_TYPE 0xDEADBEEF
+#define INVALID_JS_TYPE 0xCAFE
 
 enum BufferingMode
 {
