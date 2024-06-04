@@ -37,7 +37,7 @@ private:
 	}
 };
 
-int DecompressRaw(const char *data, const size_t length, std::string &out, const DecompressionOptions &options)
+int DecompressRaw(const char *data, const size_t length, std::vector<char> &out, const DecompressionOptions &options)
 {
 	bz_stream strm;
 	strm.bzalloc = NULL;
@@ -66,7 +66,7 @@ int DecompressRaw(const char *data, const size_t length, std::string &out, const
 			return result;
 		}
 
-		out.append(buffer, sizeof(buffer) - strm.avail_out);
+		out.insert(out.end(), buffer, buffer + sizeof(buffer) - strm.avail_out);
 	} while (result != BZ_STREAM_END);
 
 	result = BZ2_bzDecompressEnd(&strm);
@@ -92,7 +92,7 @@ NAN_METHOD(Decompress)
 	}
 
 	int result = INVALID_JS_TYPE;
-	std::string *out = new std::string();
+	std::vector<char> *out = new std::vector<char>();
 
 	if (node::Buffer::HasInstance(info[0]))
 	{
@@ -125,7 +125,7 @@ NAN_METHOD(Decompress)
 
 	if (result == BZ_OK)
 	{
-		auto buffer = Nan::NewBuffer(out->data(), out->length(), FreeStdString, out);
+		auto buffer = Nan::NewBuffer(out->data(), out->size(), FreeStdString, out);
 		info.GetReturnValue().Set(buffer.ToLocalChecked());
 	}
 	else

@@ -71,7 +71,7 @@ private:
 	}
 };
 
-int CompressRawUnbuffered(const char *data, const size_t length, std::string &out, const int level)
+int CompressRawUnbuffered(const char *data, const size_t length, std::vector<char> &out, const int level)
 {
 	try
 	{
@@ -96,7 +96,7 @@ int CompressRawUnbuffered(const char *data, const size_t length, std::string &ou
 	return BZ_OK;
 }
 
-int CompressRawBuffered(const char *data, const size_t length, std::string &out, const int level)
+int CompressRawBuffered(const char *data, const size_t length, std::vector<char> &out, const int level)
 {
 	bz_stream strm;
 	strm.bzalloc = NULL;
@@ -130,7 +130,7 @@ int CompressRawBuffered(const char *data, const size_t length, std::string &out,
 			action = BZ_FINISH;
 		}
 
-		out.append(buffer, sizeof(buffer) - strm.avail_out);
+		out.insert(out.end(), buffer, buffer + sizeof(buffer) - strm.avail_out);
 	} while (result != BZ_STREAM_END);
 
 	result = BZ2_bzCompressEnd(&strm);
@@ -138,7 +138,7 @@ int CompressRawBuffered(const char *data, const size_t length, std::string &out,
 	return result;
 }
 
-int CompressRaw(const char *data, const size_t length, std::string &out, const CompressionOptions &options)
+int CompressRaw(const char *data, const size_t length, std::vector<char> &out, const CompressionOptions &options)
 {
 	if (options.bufMode == BufferingMode::Always || (options.bufMode == BufferingMode::Auto && length >= AUTO_BUFFERING_THRESHOLD))
 	{
@@ -168,12 +168,12 @@ NAN_METHOD(Compress)
 	}
 
 	int result = INVALID_JS_TYPE;
-	std::string *out = new std::string();
+	std::vector<char> *out = new std::vector<char>();
 
 	if (info[0]->IsString())
 	{
 		std::string data = (*Nan::Utf8String(info[0]));
-		result = CompressRaw(data.c_str(), data.length(), *out, options);
+		result = CompressRaw(data.c_str(), data.size(), *out, options);
 	}
 	else if (node::Buffer::HasInstance(info[0]))
 	{
@@ -206,7 +206,7 @@ NAN_METHOD(Compress)
 
 	if (result == BZ_OK)
 	{
-		auto buffer = Nan::NewBuffer(out->data(), out->length(), FreeStdString, out);
+		auto buffer = Nan::NewBuffer(out->data(), out->size(), FreeStdString, out);
 		info.GetReturnValue().Set(buffer.ToLocalChecked());
 	}
 	else
