@@ -2,10 +2,13 @@
 	"name": "node-bzip2",
 	"version": "0.1.0",
 	"description": "NodeJS bindings for BZip2",
-	"main": "src/node-bzip2.js",
-	"scripts": {
-		"install": "node-gyp rebuild --release",
-		"test": "node test/compression.js && node test/options.js"
+	"homepage": "https://github.com/WilliamVenner/node-bzip2",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/WilliamVenner/node-bzip2.git"
+	},
+	"bugs": {
+		"url": "https://github.com/WilliamVenner/node-bzip2/issues"
 	},
 	"keywords": [
 		"bzip2",
@@ -15,7 +18,12 @@
 		"decompression",
 		"decompress"
 	],
-	"author": "William Venner",
+	"author": "William Venner <william@venner.io> (https://github.com/WilliamVenner)",
+	"main": "src/node-bzip2.js",
+	"scripts": {
+		"install": "node-gyp rebuild --release",
+		"test": "node test/compression.js && node test/options.js"
+	},
 	"license": "MIT",
 	"devDependencies": {
 		"nan": "^2.19.0",
