@@ -1,5 +1,4 @@
 [![NPM](https://img.shields.io/npm/v/node-bzip2.svg)](https://www.npmjs.com/package/node-bzip2)
-![CI](https://github.com/WilliamVenner/node-bzip2/workflows/ci/badge.svg)
 
 # node-bzip2
 
