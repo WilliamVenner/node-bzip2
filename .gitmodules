@@ -1,0 +1,3 @@
+[submodule "lib/bzip2"]
+	path = lib/bzip2
+	url = https://gitlab.com/bzip2/bzip2.git
