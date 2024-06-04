@@ -23,7 +23,7 @@
 				{
 					"action_name": "build_bzip2",
 					"inputs": ["<(INTERMEDIATE_DIR)/bzip2"],
-					"outputs": ["<(INTERMEDIATE_DIR)/bzip2/CMakeLists.txt"],
+					"outputs": ["<(INTERMEDIATE_DIR)/bzip2/bz_version.h"],
 					"action": [
 						"cmake",
 						"--build",
