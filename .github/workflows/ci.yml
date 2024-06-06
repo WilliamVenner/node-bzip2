@@ -53,7 +53,7 @@ jobs:
           mkdir npm-install-test
           cd npm-install-test
           npm init -y
-          npm install ../ --save --install-links
+          npm install ../ --save --install-links --foreground-scripts
 
       - name: Run integration test
         run: |
