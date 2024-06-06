@@ -213,7 +213,9 @@ namespace NodeBzip2
 		if (!CompressMethod(info, context))
 			return;
 
-		Result result = CompressRaw(DataSlice::Borrowed(context.data, context.length), context.options);
+		DataSlice data = DataSlice::Borrowed(context.data, context.length);
+
+		Result result = CompressRaw(data, context.options);
 
 		if (!result.hasError())
 		{

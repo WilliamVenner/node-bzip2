@@ -135,7 +135,9 @@ namespace NodeBzip2
 		if (!DecompressMethod(info, context))
 			return;
 
-		Result result = DecompressRaw(DataSlice::Borrowed(context.data, context.length), context.options);
+		DataSlice data = DataSlice::Borrowed(context.data, context.length);
+
+		Result result = DecompressRaw(data, context.options);
 
 		if (!result.hasError())
 		{
