@@ -1,7 +1,7 @@
 {
 	"name": "node-bzip2",
-	"version": "1.0.0",
-	"description": "NodeJS bindings for BZip2",
+	"version": "1.0.1",
+	"description": "NodeJS bindings for BZip2 (libbz2)",
 	"homepage": "https://github.com/WilliamVenner/node-bzip2",
 	"repository": "git+https://github.com/WilliamVenner/node-bzip2.git",
 	"bugs": {

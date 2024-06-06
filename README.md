@@ -2,7 +2,7 @@
 
 # node-bzip2
 
-NodeJS bindings for BZip2.
+NodeJS bindings for BZip2 (libbz2).
 
 This package will compile the BZip2 library from source and link against it, exposing functions for compressing and decompressing data using the BZip2 algorithm in NodeJS.
 

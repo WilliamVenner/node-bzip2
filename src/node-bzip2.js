@@ -1,5 +1,5 @@
 /**
- * NodeJS bindings for BZip2.
+ * NodeJS bindings for BZip2 (libbz2).
  * @module node-bzip2
  */
 
