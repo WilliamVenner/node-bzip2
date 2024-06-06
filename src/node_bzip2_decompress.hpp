@@ -91,6 +91,7 @@ bool DecompressMethod(Nan::NAN_METHOD_ARGS_TYPE info, CompressionTaskContext<Dec
 	{
 		context.data = node::Buffer::Data(info[0]);
 		context.length = node::Buffer::Length(info[0]);
+		return true;
 	}
 	else if (info[0]->IsObject())
 	{
@@ -114,10 +115,12 @@ bool DecompressMethod(Nan::NAN_METHOD_ARGS_TYPE info, CompressionTaskContext<Dec
 
 			context.data = *bytes;
 			context.length = bytes.length();
+			return true;
 		}
 	}
 
-	return true;
+	Nan::ThrowError(convertError(INVALID_JS_TYPE));
+	return false;
 }
 
 NAN_METHOD(Decompress)

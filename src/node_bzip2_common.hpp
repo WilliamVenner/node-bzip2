@@ -12,11 +12,6 @@ extern "C" {
 #define AUTO_BUFFERING_THRESHOLD 1073741824 // 1 GiB
 #define INVALID_JS_TYPE 0xCAFE
 
-void FreeStdVector(char *data, void *hint)
-{
-	delete static_cast<std::vector<char> *>(hint);
-}
-
 enum BufferingMode
 {
 	Auto,
@@ -132,7 +127,6 @@ public:
 	}
 
 	static void NodeGc(char *data, void *hint) {
-		printf("NodeGc\n");
 		delete static_cast<CompressionTaskResult *>(hint);
 	}
 

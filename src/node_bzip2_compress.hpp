@@ -161,19 +161,18 @@ bool CompressMethod(Nan::NAN_METHOD_ARGS_TYPE info, CompressionTaskContext<Compr
 			return false;
 	}
 
-	const char* data;
-	size_t length;
-
 	if (info[0]->IsString())
 	{
 		context.strData = (*Nan::Utf8String(info[0]));
 		context.data = context.strData.c_str();
 		context.length = context.strData.length();
+		return true;
 	}
 	else if (node::Buffer::HasInstance(info[0]))
 	{
 		context.data = node::Buffer::Data(info[0]);
 		context.length = node::Buffer::Length(info[0]);
+		return true;
 	}
 	else if (info[0]->IsObject())
 	{
@@ -196,10 +195,13 @@ bool CompressMethod(Nan::NAN_METHOD_ARGS_TYPE info, CompressionTaskContext<Compr
 			}
 			context.data = *bytes;
 			context.length = bytes.length();
+
+			return true;
 		}
 	}
 
-	return true;
+	Nan::ThrowError(convertError(INVALID_JS_TYPE));
+	return false;
 }
 
 NAN_METHOD(Compress)

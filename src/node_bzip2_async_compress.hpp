@@ -20,7 +20,7 @@ NAN_METHOD(CompressAsync) {
 	try {
 		CompressionTaskData data = CompressionTaskData::Clone(context.data, context.length);
 		Nan::AsyncQueueWorker(new AsyncCompressTask(callback, std::move(data), context.options));
-	} catch (std::bad_alloc &e) {
+	} catch (std::bad_alloc &) {
 		Nan::ThrowError(convertError(BZ_MEM_ERROR));
 	}
 }
