@@ -1,26 +1,34 @@
 #include "node_bzip2_compress.hpp"
 #include "node_bzip2_async.hpp"
 
-class AsyncCompressTask : public AsyncCompressionTask<CompressionOptions>
+namespace NodeBzip2
 {
-    using AsyncCompressionTask<CompressionOptions>::AsyncCompressionTask;
-
-	void Execute()
+	class AsyncCompressTask : public AsyncCompressionTask<CompressionOptions>
 	{
-		result = CompressRaw(task, options);
-	}
-};
+		using AsyncCompressionTask<CompressionOptions>::AsyncCompressionTask;
 
-NAN_METHOD(CompressAsync) {
-	CompressionTaskContext<CompressionOptions> context;
-	if (!CompressMethod(info, context)) return;
+		void Execute()
+		{
+			result = CompressRaw(task, options);
+		}
+	};
 
-	Nan::Callback* callback = new Nan::Callback(Nan::To<v8::Function>(info[2]).ToLocalChecked());
+	NAN_METHOD(CompressAsync)
+	{
+		Context<CompressionOptions> context;
+		if (!CompressMethod(info, context))
+			return;
 
-	try {
-		CompressionTaskData data = CompressionTaskData::Clone(context.data, context.length);
-		Nan::AsyncQueueWorker(new AsyncCompressTask(callback, std::move(data), context.options));
-	} catch (std::bad_alloc &) {
-		Nan::ThrowError(convertError(BZ_MEM_ERROR));
+		Nan::Callback *callback = new Nan::Callback(Nan::To<v8::Function>(info[2]).ToLocalChecked());
+
+		try
+		{
+			DataSlice data = DataSlice::Clone(context.data, context.length);
+			Nan::AsyncQueueWorker(new AsyncCompressTask(callback, std::move(data), context.options));
+		}
+		catch (std::bad_alloc &)
+		{
+			Nan::ThrowError(convertError(BZ_MEM_ERROR));
+		}
 	}
 }

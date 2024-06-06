@@ -1,6 +1,6 @@
 {
 	"name": "node-bzip2",
-	"version": "0.1.1",
+	"version": "1.0.0",
 	"description": "NodeJS bindings for BZip2",
 	"homepage": "https://github.com/WilliamVenner/node-bzip2",
 	"repository": "git+https://github.com/WilliamVenner/node-bzip2.git",
@@ -19,7 +19,7 @@
 	"main": "src/node-bzip2.js",
 	"scripts": {
 		"install": "node-gyp rebuild --release",
-		"test": "node --expose-gc test/compression.js && node --expose-gc test/options.js"
+		"test": "node --expose-gc test/compression.js && node test/options.js && node test/invalid.js && node --expose-gc test/async.js"
 	},
 	"license": "MIT",
 	"devDependencies": {
