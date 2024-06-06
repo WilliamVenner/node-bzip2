@@ -160,14 +160,14 @@ namespace NodeBzip2
 	public:
 		bool hasError;
 
-		Options() {}
+		Options(): hasError(false) {}
 		Options(const v8::Local<v8::Object> &options) : Options() {}
 
 	protected:
 		void throwTypeError(const char *msg)
 		{
-			Nan::ThrowTypeError(msg);
 			hasError = true;
+			Nan::ThrowTypeError(msg);
 		}
 	};
 

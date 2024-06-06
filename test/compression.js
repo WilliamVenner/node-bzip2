@@ -1,3 +1,5 @@
+console.log('compression.js: Running');
+
 const bzip2 = require('../src/node-bzip2');
 
 const input = 'This is a test string for bzip2 compression'.repeat(10000);

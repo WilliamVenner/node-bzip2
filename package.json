@@ -20,7 +20,7 @@
 	"scripts": {
 		"preinstall": "node-gyp configure --release",
 		"install": "node-gyp rebuild --release",
-		"test": "node --expose-gc test/compression.js && node test/options.js && node test/invalid.js && node --expose-gc test/async.js"
+		"test": "node --expose-gc test/compression.js && node test/options.js && node test/invalid.js && node --expose-gc test/async.js && node test/integration.js"
 	},
 	"license": "MIT",
 	"dependencies": {

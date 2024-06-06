@@ -1,3 +1,5 @@
+console.log('options.js: Running');
+
 const bzip2 = require('../src/node-bzip2');
 
 const compressed = bzip2.compress('Hello world');

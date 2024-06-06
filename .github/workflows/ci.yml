@@ -54,6 +54,8 @@ jobs:
           cd npm-install-test
           npm init -y
           npm install ../ --save --install-links
+          cp node_modules/node-bzip2/test/integration.js integration.js
+          node integration.js
 
   publish:
     if: startsWith(github.ref, 'refs/tags/v')
