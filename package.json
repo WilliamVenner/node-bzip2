@@ -19,7 +19,7 @@
 	"main": "src/node-bzip2.js",
 	"scripts": {
 		"preinstall": "node-gyp configure --release",
-		"postinstall": "node-gyp rebuild --release",
+		"install": "node-gyp rebuild --release",
 		"test": "node --expose-gc test/compression.js && node test/options.js && node test/invalid.js && node --expose-gc test/async.js"
 	},
 	"license": "MIT",
