@@ -54,6 +54,10 @@ jobs:
           cd npm-install-test
           npm init -y
           npm install ../ --save --install-links
+
+      - name: Run integration test
+        run: |
+          cd npm-install-test
           cp node_modules/node-bzip2/test/integration.js integration.js
           node integration.js
 
