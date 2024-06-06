@@ -18,15 +18,16 @@
 	"author": "William Venner <william@venner.io> (https://github.com/WilliamVenner)",
 	"main": "src/node-bzip2.js",
 	"scripts": {
-		"install": "node-gyp rebuild --release",
+		"preinstall": "node-gyp configure --release",
+		"postinstall": "node-gyp rebuild --release",
 		"test": "node --expose-gc test/compression.js && node test/options.js && node test/invalid.js && node --expose-gc test/async.js"
 	},
 	"license": "MIT",
 	"devDependencies": {
-		"nan": "^2.19.0",
 		"node-gyp": "^10.1.0"
 	},
 	"dependencies": {
+		"nan": "^2.19.0",
 		"bindings": "^1.5.0"
 	}
 }
