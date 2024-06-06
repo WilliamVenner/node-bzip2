@@ -31,5 +31,8 @@ testCompression(new Uint16Array(Buffer.from(input, 'utf8')), 'utf-16le');
 	testCompression(arrayBuffer);
 }
 
+global.gc();
+global.gc();
+
 console.log('compression.js: OK');
 process.exit(0);

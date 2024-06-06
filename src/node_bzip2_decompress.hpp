@@ -1,15 +1,13 @@
 #include "node_bzip2_common.hpp"
 
-class DecompressionOptions
+class DecompressionOptions : public CompressionTaskOptions
 {
 public:
 	bool small;
-	bool hasError;
 
 	DecompressionOptions()
 	{
 		small = false;
-		hasError = false;
 	}
 
 	DecompressionOptions(const v8::Local<v8::Object> &options) : DecompressionOptions()
@@ -28,16 +26,9 @@ public:
 			}
 		}
 	}
-
-private:
-	void throwTypeError(const char *msg)
-	{
-		Nan::ThrowTypeError(msg);
-		hasError = true;
-	}
 };
 
-int DecompressRaw(const char *data, const size_t length, std::vector<char> &out, const DecompressionOptions &options)
+CompressionTaskResult DecompressRaw(CompressionTaskData data, const DecompressionOptions &options)
 {
 	bz_stream strm;
 	strm.bzalloc = NULL;
@@ -47,11 +38,13 @@ int DecompressRaw(const char *data, const size_t length, std::vector<char> &out,
 	int result = BZ2_bzDecompressInit(&strm, 0, options.small ? 1 : 0);
 	if (result != BZ_OK)
 	{
-		return result;
+		return CompressionTaskResult::error(result);
 	}
 
-	strm.next_in = (char *)data;
-	strm.avail_in = length;
+	strm.next_in = (char *)data.data;
+	strm.avail_in = data.length;
+
+	std::vector<char> out;
 
 	char buffer[4096];
 	do
@@ -63,7 +56,7 @@ int DecompressRaw(const char *data, const size_t length, std::vector<char> &out,
 		if (result != BZ_OK && result != BZ_STREAM_END)
 		{
 			BZ2_bzDecompressEnd(&strm);
-			return result;
+			return CompressionTaskResult::error(result);
 		}
 
 		out.insert(out.end(), buffer, buffer + sizeof(buffer) - strm.avail_out);
@@ -71,7 +64,11 @@ int DecompressRaw(const char *data, const size_t length, std::vector<char> &out,
 
 	result = BZ2_bzDecompressEnd(&strm);
 
-	return result;
+	if (result == BZ_OK) {
+		return CompressionTaskResult::ok(out);
+	} else {
+		return CompressionTaskResult::error(result);
+	}
 }
 
 NAN_METHOD(Decompress)
@@ -91,14 +88,13 @@ NAN_METHOD(Decompress)
 			return;
 	}
 
-	int result = INVALID_JS_TYPE;
-	std::vector<char> *out = new std::vector<char>();
+	char* data;
+	size_t length;
 
 	if (node::Buffer::HasInstance(info[0]))
 	{
-		char *data = node::Buffer::Data(info[0]);
-		size_t length = node::Buffer::Length(info[0]);
-		result = DecompressRaw(data, length, *out, options);
+		data = node::Buffer::Data(info[0]);
+		length = node::Buffer::Length(info[0]);
 	}
 	else if (info[0]->IsObject())
 	{
@@ -119,17 +115,24 @@ NAN_METHOD(Decompress)
 				Nan::ThrowTypeError("typed array was not initialized");
 				return;
 			}
-			result = DecompressRaw(*bytes, bytes.length(), *out, options);
+
+			data = *bytes;
+			length = bytes.length();
 		}
 	}
 
-	if (result == BZ_OK)
+	CompressionTaskResult result = DecompressRaw(CompressionTaskData::Borrowed(data, length), options);
+
+	if (!result.hasError())
 	{
-		auto buffer = Nan::NewBuffer(out->data(), out->size(), FreeStdString, out);
+		CompressionTaskResult* resultAlloc = new CompressionTaskResult(result);
+		std::vector<char>* out = resultAlloc->getData();
+
+		auto buffer = Nan::NewBuffer(out->data(), out->size(), CompressionTaskResult::NodeDelete, resultAlloc);
 		info.GetReturnValue().Set(buffer.ToLocalChecked());
 	}
 	else
 	{
-		returnResult(result);
+		returnResult(result.getError());
 	}
 }

@@ -1,17 +1,15 @@
 #include "node_bzip2_common.hpp"
 
-class CompressionOptions
+class CompressionOptions : public CompressionTaskOptions
 {
 public:
 	int level;
 	BufferingMode bufMode;
-	bool hasError;
 
 	CompressionOptions()
 	{
 		level = 9;
 		bufMode = BufferingMode::Auto;
-		hasError = false;
 	}
 
 	CompressionOptions(const v8::Local<v8::Object> &options) : CompressionOptions()
@@ -62,41 +60,36 @@ public:
 			}
 		}
 	}
-
-private:
-	void throwTypeError(const char *msg)
-	{
-		Nan::ThrowTypeError(msg);
-		hasError = true;
-	}
 };
 
-int CompressRawUnbuffered(const char *data, const size_t length, std::vector<char> &out, const int level)
+CompressionTaskResult CompressRawUnbuffered(CompressionTaskData task, const int level)
 {
+	std::vector<char> out;
+
 	try
 	{
-		out.resize(length + length / 100 + 600);
+		out = std::vector<char>(task.length + task.length / 100 + 600);
 	}
 	catch (std::bad_alloc &)
 	{
-		return BZ_MEM_ERROR;
+		return CompressionTaskResult::error(BZ_MEM_ERROR);
 	}
 
 	unsigned int outSize = out.size();
 
-	int result = BZ2_bzBuffToBuffCompress(out.data(), &outSize, (char *)data, length, level, 0, 30);
+	int result = BZ2_bzBuffToBuffCompress(out.data(), &outSize, (char*)task.data, task.length, level, 0, 30);
 	if (result != BZ_OK)
 	{
-		return result;
+		return CompressionTaskResult::error(result);
 	}
 
 	out.resize(outSize);
 	out.shrink_to_fit();
 
-	return BZ_OK;
+	return CompressionTaskResult::ok(out);
 }
 
-int CompressRawBuffered(const char *data, const size_t length, std::vector<char> &out, const int level)
+CompressionTaskResult CompressRawBuffered(CompressionTaskData task, const int level)
 {
 	bz_stream strm;
 	strm.bzalloc = NULL;
@@ -106,11 +99,13 @@ int CompressRawBuffered(const char *data, const size_t length, std::vector<char>
 	int result = BZ2_bzCompressInit(&strm, level, 0, 30);
 	if (result != BZ_OK)
 	{
-		return result;
+		return CompressionTaskResult::error(result);
 	}
 
-	strm.next_in = (char *)data;
-	strm.avail_in = length;
+	strm.next_in = (char*)task.data;
+	strm.avail_in = task.length;
+
+	std::vector<char> out;
 
 	int action = BZ_RUN;
 	char buffer[4096];
@@ -123,7 +118,7 @@ int CompressRawBuffered(const char *data, const size_t length, std::vector<char>
 		if (result != BZ_RUN_OK && result != BZ_STREAM_END)
 		{
 			BZ2_bzCompressEnd(&strm);
-			return result;
+			return CompressionTaskResult::error(result);
 		}
 		else if (action == BZ_RUN && strm.avail_in <= 0)
 		{
@@ -135,18 +130,18 @@ int CompressRawBuffered(const char *data, const size_t length, std::vector<char>
 
 	result = BZ2_bzCompressEnd(&strm);
 
-	return result;
+	return CompressionTaskResult::ok(out);
 }
 
-int CompressRaw(const char *data, const size_t length, std::vector<char> &out, const CompressionOptions &options)
+CompressionTaskResult CompressRaw(CompressionTaskData task, const CompressionOptions &options)
 {
-	if (options.bufMode == BufferingMode::Always || (options.bufMode == BufferingMode::Auto && length >= AUTO_BUFFERING_THRESHOLD))
+	if (options.bufMode == BufferingMode::Always || (options.bufMode == BufferingMode::Auto && task.length >= AUTO_BUFFERING_THRESHOLD))
 	{
-		return CompressRawBuffered(data, length, out, options.level);
+		return CompressRawBuffered(task, options.level);
 	}
 	else
 	{
-		return CompressRawUnbuffered(data, length, out, options.level);
+		return CompressRawUnbuffered(task, options.level);
 	}
 }
 
@@ -167,19 +162,21 @@ NAN_METHOD(Compress)
 			return;
 	}
 
-	int result = INVALID_JS_TYPE;
-	std::vector<char> *out = new std::vector<char>();
+	std::string strData;
+
+	const char* data;
+	size_t length;
 
 	if (info[0]->IsString())
 	{
-		std::string data = (*Nan::Utf8String(info[0]));
-		result = CompressRaw(data.c_str(), data.size(), *out, options);
+		strData = (*Nan::Utf8String(info[0]));
+		data = strData.c_str();
+		length = strData.length();
 	}
 	else if (node::Buffer::HasInstance(info[0]))
 	{
-		char *data = node::Buffer::Data(info[0]);
-		size_t length = node::Buffer::Length(info[0]);
-		result = CompressRaw(data, length, *out, options);
+		data = node::Buffer::Data(info[0]);
+		length = node::Buffer::Length(info[0]);
 	}
 	else if (info[0]->IsObject())
 	{
@@ -200,17 +197,23 @@ NAN_METHOD(Compress)
 				Nan::ThrowTypeError("typed array was not initialized");
 				return;
 			}
-			result = CompressRaw(*bytes, bytes.length(), *out, options);
+			data = *bytes;
+			length = bytes.length();
 		}
 	}
 
-	if (result == BZ_OK)
+	CompressionTaskResult result = CompressRaw(CompressionTaskData::Borrowed(data, length), options);
+
+	if (!result.hasError())
 	{
-		auto buffer = Nan::NewBuffer(out->data(), out->size(), FreeStdString, out);
+		CompressionTaskResult* resultAlloc = new CompressionTaskResult(result);
+		std::vector<char>* out = resultAlloc->getData();
+
+		auto buffer = Nan::NewBuffer(out->data(), out->size(), CompressionTaskResult::NodeDelete, resultAlloc);
 		info.GetReturnValue().Set(buffer.ToLocalChecked());
 	}
 	else
 	{
-		returnResult(result);
+		returnResult(result.getError());
 	}
 }

@@ -19,7 +19,7 @@
 	"main": "src/node-bzip2.js",
 	"scripts": {
 		"install": "node-gyp rebuild --release",
-		"test": "node test/compression.js && node test/options.js"
+		"test": "node --expose-gc test/compression.js && node --expose-gc test/options.js"
 	},
 	"license": "MIT",
 	"devDependencies": {
