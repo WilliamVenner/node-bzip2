@@ -1,3 +1,5 @@
+console.log('async.js: Running');
+
 const bzip2 = require('../src/node-bzip2');
 
 async function doAsyncTest() {

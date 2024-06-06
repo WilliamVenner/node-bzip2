@@ -1,13 +1,23 @@
+console.log('options.js: Running');
+
 const bzip2 = require('../src/node-bzip2');
 
 const compressed = bzip2.compress('Hello world');
 
-bzip2.compress('Hello world', { level: 7, buffering: 'auto' });
-bzip2.compress('Hello world', { level: 1, buffering: 'never' });
-bzip2.compress('Hello world', { level: 9, buffering: 'always' });
-bzip2.compress('Hello world', { level: 10 });
-bzip2.compress('Hello world', { level: 0 });
-bzip2.compress('Hello world', { level: -1 });
+function verify(compressed) {
+	const decompressed = bzip2.decompress(compressed);
+	const decompressedText = (new TextDecoder('utf8')).decode(new Uint8Array(decompressed));
+	if (decompressedText !== 'Hello world') {
+		throw new Error('Decompression failed');
+	}
+}
+
+verify(bzip2.compress('Hello world', { level: 7, buffering: 'auto' }));
+verify(bzip2.compress('Hello world', { level: 1, buffering: 'never' }));
+verify(bzip2.compress('Hello world', { level: 9, buffering: 'always' }));
+verify(bzip2.compress('Hello world', { level: 10 }));
+verify(bzip2.compress('Hello world', { level: 0 }));
+verify(bzip2.compress('Hello world', { level: -1 }));
 
 bzip2.decompress(compressed, { small: false });
 bzip2.decompress(compressed, { small: true });

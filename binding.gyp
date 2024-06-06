@@ -6,7 +6,7 @@
                 {
                     "action_name": "configure_bzip2",
                     "inputs": [],
-                    "outputs": ["<(INTERMEDIATE_DIR)/bzip2"],
+                    "outputs": ["<(INTERMEDIATE_DIR)/bzip2/bz_version.h"],
                     "action": [
                         "cmake",
                         "-S",
@@ -23,13 +23,24 @@
                 },
                 {
                     "action_name": "build_bzip2",
-                    "inputs": ["<(INTERMEDIATE_DIR)/bzip2"],
-                    "outputs": ["<(INTERMEDIATE_DIR)/bzip2/bz_version.h"],
+                    "inputs": ["<(INTERMEDIATE_DIR)/bzip2/bz_version.h"],
+                    "outputs": [],
                     "action": [
                         "cmake",
                         "--build",
                         "<(INTERMEDIATE_DIR)/bzip2",
                         "--config=Release",
+                    ],
+                    "conditions": [
+                        [
+                            'OS=="win"',
+                            {
+                                "outputs": [
+                                    "<(INTERMEDIATE_DIR)/bzip2/Release/bz2_static.lib"
+                                ]
+                            },
+                            {"outputs": ["<(INTERMEDIATE_DIR)/bzip2/libbz2_static.a"]},
+                        ]
                     ],
                 },
             ],
@@ -44,11 +55,11 @@
                     "AdditionalOptions": ["/MD"],
                 }
             },
+            "xcode_settings": {"GCC_ENABLE_CPP_EXCEPTIONS": "YES"},
             "conditions": [
                 [
                     'OS=="mac"',
                     {
-                        "xcode_settings": {"GCC_ENABLE_CPP_EXCEPTIONS": "YES"},
                         "cflags": ["-mmacosx-version-min=11.0"],
                     },
                 ],

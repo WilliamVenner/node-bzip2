@@ -149,7 +149,7 @@ namespace NodeBzip2
 		}
 	}
 
-	bool CompressMethod(Nan::NAN_METHOD_ARGS_TYPE info, Context<CompressionOptions> &context)
+	bool CompressMethod(Nan::NAN_METHOD_ARGS_TYPE &info, Context<CompressionOptions> &context)
 	{
 		if (info.Length() < 1)
 		{
@@ -157,49 +157,52 @@ namespace NodeBzip2
 			return false;
 		}
 
-		if (info.Length() >= 2 && info[1]->IsObject())
+		if (info.Length() >= 2 && !info[1]->IsNullOrUndefined() && info[1]->IsObject())
 		{
 			context.options = CompressionOptions(info[1].As<v8::Object>());
 			if (context.options.hasError)
 				return false;
 		}
 
-		if (info[0]->IsString())
+		if (!info[0]->IsNullOrUndefined())
 		{
-			context.strData = (*Nan::Utf8String(info[0]));
-			context.data = context.strData.c_str();
-			context.length = context.strData.length();
-			return true;
-		}
-		else if (node::Buffer::HasInstance(info[0]))
-		{
-			context.data = node::Buffer::Data(info[0]);
-			context.length = node::Buffer::Length(info[0]);
-			return true;
-		}
-		else if (info[0]->IsObject())
-		{
-			auto val = info[0].As<v8::Value>();
-
-			if (val->IsArrayBuffer())
+			if (info[0]->IsString())
 			{
-				auto arrayBuffer = val.As<v8::ArrayBuffer>();
-				val = v8::Uint8Array::New(arrayBuffer, 0, arrayBuffer->ByteLength());
-			}
-
-			if (val->IsTypedArray())
-			{
-				auto byteArray = val.As<v8::Uint8Array>();
-				Nan::TypedArrayContents<char> bytes(byteArray);
-				if (*bytes == nullptr)
-				{
-					Nan::ThrowTypeError("typed array was not initialized");
-					return false;
-				}
-				context.data = *bytes;
-				context.length = bytes.length();
-
+				context.strData = (*Nan::Utf8String(info[0]));
+				context.data = context.strData.c_str();
+				context.length = context.strData.length();
 				return true;
+			}
+			else if (node::Buffer::HasInstance(info[0]))
+			{
+				context.data = node::Buffer::Data(info[0]);
+				context.length = node::Buffer::Length(info[0]);
+				return true;
+			}
+			else if (info[0]->IsObject())
+			{
+				auto val = info[0].As<v8::Value>();
+
+				if (val->IsArrayBuffer())
+				{
+					auto arrayBuffer = val.As<v8::ArrayBuffer>();
+					val = v8::Uint8Array::New(arrayBuffer, 0, arrayBuffer->ByteLength());
+				}
+
+				if (val->IsTypedArray())
+				{
+					auto byteArray = val.As<v8::Uint8Array>();
+					Nan::TypedArrayContents<char> bytes(byteArray);
+					if (*bytes == nullptr)
+					{
+						Nan::ThrowTypeError("typed array was not initialized");
+						return false;
+					}
+					context.data = *bytes;
+					context.length = bytes.length();
+
+					return true;
+				}
 			}
 		}
 
