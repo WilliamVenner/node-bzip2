@@ -29,7 +29,7 @@ const bzip2 = require('node-bzip2');
 const compressedBytes = bzip2.compress('Hello, world!', { level: 9, buffering: 'auto' });
 
 // Decompress the data
-const decompressedBytes = bzip2.decompress(compressedBytes);
+const decompressedBytes = bzip2.decompress(compressedBytes, { small: false });
 
 // Decode the decompressed data as a UTF-8 string
 const decompressed = (new TextDecoder('utf8')).decode(decompressedBytes);
@@ -46,7 +46,7 @@ const bzip2 = require('node-bzip2');
 const compressedBytes = await bzip2.compressAsync('Hello, world!', { level: 9, buffering: 'auto' });
 
 // Decompress the data
-const decompressedBytes = await bzip2.decompressAsync(compressedBytes);
+const decompressedBytes = await bzip2.decompressAsync(compressedBytes, { small: false });
 
 // Decode the decompressed data as a UTF-8 string
 const decompressed = (new TextDecoder('utf8')).decode(decompressedBytes);
