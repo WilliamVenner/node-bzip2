@@ -23,6 +23,18 @@
 const bindings = require('bindings');
 const nodeBzip2 = bindings('node_bzip2');
 
+function promiseify(fn, data, options) {
+	return new Promise((resolve, reject) => {
+		fn(data, options, (err, ok) => {
+			if (ok !== null) {
+				resolve(ok);
+			} else {
+				reject(err);
+			}
+		});
+	});
+}
+
 /**
  * Compresses the given data using BZip2.
  * @param {Buffer|string|Uint8Array|Uint8ClampedArray|Int16Array|Uint16Array|Int32Array|Uint32Array} data The data to be compressed.
@@ -43,7 +55,29 @@ function decompress(data, options) {
 	return nodeBzip2.decompress(data, options);
 }
 
+/**
+ * Compresses the given data using BZip2 asynchronously.
+ * @param {Buffer|string|Uint8Array|Uint8ClampedArray|Int16Array|Uint16Array|Int32Array|Uint32Array} data The data to be compressed.
+ * @param {CompressionOptions} [options] Configuration for the compression.
+ * @returns {Promise<Buffer>} The compressed data.
+ */
+function compressAsync(data, options) {
+	return promiseify(nodeBzip2.compressAsync, data, options);
+}
+
+/**
+ * Decompresses the given data using Bzip2 asynchronously.
+ * @param {Buffer} data The data to be decompressed.
+ * @param {DecompressionOptions} [options] Configuration for the decompression.
+ * @returns {Promise<Buffer>} The decompressed data.
+ */
+function decompressAsync(data, options) {
+	return promiseify(nodeBzip2.decompressAsync, data, options);
+}
+
 module.exports = {
 	compress,
-	decompress
+	decompress,
+	compressAsync,
+	decompressAsync
 };

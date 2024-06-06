@@ -24,41 +24,32 @@ enum BufferingMode
 	Never
 };
 
-void returnResult(int result)
+v8::Local<v8::Value> convertError(int result)
 {
 	switch (result)
 	{
 	case INVALID_JS_TYPE:
-		Nan::ThrowTypeError("data was not a string, buffer, or array");
-		break;
+		return Nan::TypeError("data was not a string, buffer, or array");
 
 	case BZ_CONFIG_ERROR:
-		Nan::ThrowError("BZ_CONFIG_ERROR");
-		break;
+		return Nan::Error("BZ_CONFIG_ERROR");
 	case BZ_PARAM_ERROR:
-		Nan::ThrowError("BZ_PARAM_ERROR");
-		break;
+		return Nan::Error("BZ_PARAM_ERROR");
 	case BZ_MEM_ERROR:
-		Nan::ThrowError("BZ_MEM_ERROR");
-		break;
+		return Nan::Error("BZ_MEM_ERROR");
 	case BZ_OUTBUFF_FULL:
-		Nan::ThrowError("BZ_OUTBUFF_FULL");
-		break;
+		return Nan::Error("BZ_OUTBUFF_FULL");
 	case BZ_DATA_ERROR:
-		Nan::ThrowError("BZ_DATA_ERROR");
-		break;
+		return Nan::Error("BZ_DATA_ERROR");
 	case BZ_DATA_ERROR_MAGIC:
-		Nan::ThrowError("BZ_DATA_ERROR_MAGIC");
-		break;
+		return Nan::Error("BZ_DATA_ERROR_MAGIC");
 	case BZ_UNEXPECTED_EOF:
-		Nan::ThrowError("BZ_UNEXPECTED_EOF");
-		break;
+		return Nan::Error("BZ_UNEXPECTED_EOF");
 
 	default:
 		char buffer[50];
 		std::snprintf(buffer, sizeof(buffer), "unknown error (code %d)", result);
-		Nan::ThrowError(buffer);
-		break;
+		return Nan::Error(buffer);
 	}
 }
 
@@ -85,6 +76,21 @@ public:
 		if (!borrowed) {
 			delete[] data;
 		}
+	}
+
+	// Move only
+	CompressionTaskData(const CompressionTaskData&) = delete;
+	CompressionTaskData& operator=(const CompressionTaskData&) = delete;
+	CompressionTaskData& operator=(CompressionTaskData&&) = delete;
+
+	CompressionTaskData(CompressionTaskData&& other) noexcept {
+		data = other.data;
+		length = other.length;
+		borrowed = other.borrowed;
+
+		other.data = nullptr;
+		other.length = 0;
+		other.borrowed = true;
 	}
 private:
 	bool borrowed;
@@ -125,9 +131,16 @@ public:
 		}
 	}
 
-	static void NodeDelete(char *data, void *hint) {
+	static void NodeGc(char *data, void *hint) {
+		printf("NodeGc\n");
 		delete static_cast<CompressionTaskResult *>(hint);
 	}
+
+	// Move only
+	CompressionTaskResult(const CompressionTaskResult&) = delete;
+	CompressionTaskResult& operator=(const CompressionTaskResult&) = delete;
+	CompressionTaskResult(CompressionTaskResult&&) = default;
+	CompressionTaskResult& operator=(CompressionTaskResult&&) = default;
 };
 
 class CompressionTaskOptions
@@ -144,4 +157,12 @@ protected:
 		Nan::ThrowTypeError(msg);
 		hasError = true;
 	}
+};
+
+template <typename T>
+struct CompressionTaskContext {
+	const char* data;
+	size_t length;
+	T options;
+	std::string strData;
 };
