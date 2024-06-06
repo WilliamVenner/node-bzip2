@@ -2,10 +2,10 @@ console.log('integration.js: Running');
 
 let package;
 try {
-	package = require('../package.json');
+	package = require('./package.json');
 } catch (e) {
 	if (e.code === 'MODULE_NOT_FOUND') {
-		package = require('./package.json');
+		package = require('../package.json');
 	} else {
 		throw e;
 	}
