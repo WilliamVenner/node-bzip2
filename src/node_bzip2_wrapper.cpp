@@ -1,6 +1,9 @@
+#define NODE_BZIP2_WRAPPER
+
 #include "node_bzip2_common.hpp"
 #include "node_bzip2_compress.hpp"
 #include "node_bzip2_decompress.hpp"
+#include "node_bzip2_async.hpp"
 #include "node_bzip2_async_compress.hpp"
 #include "node_bzip2_async_decompress.hpp"
 

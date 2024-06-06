@@ -8,7 +8,7 @@ namespace NodeBzip2
 	class AsyncCompressionTask : public Nan::AsyncWorker
 	{
 	public:
-		AsyncCompressionTask(Nan::Callback *callback, DataSlice task, T options) : Nan::AsyncWorker(callback), task(std::move(task)), options(options), result(Result::ok(std::vector<char>())) {}
+		AsyncCompressionTask(Nan::Callback *callback, DataSlice &&task, T options) : Nan::AsyncWorker(callback), task(std::move(task)), options(options), result(Result::ok(std::vector<char>())) {}
 		~AsyncCompressionTask() {}
 
 		void HandleOKCallback()

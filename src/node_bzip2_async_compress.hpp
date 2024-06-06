@@ -13,6 +13,7 @@ namespace NodeBzip2
 		}
 	};
 
+#ifdef NODE_VERSION
 	NAN_METHOD(CompressAsync)
 	{
 		Context<CompressionOptions> context;
@@ -31,4 +32,5 @@ namespace NodeBzip2
 			Nan::ThrowError(convertError(BZ_MEM_ERROR));
 		}
 	}
+#endif
 }

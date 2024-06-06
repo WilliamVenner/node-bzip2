@@ -41,7 +41,7 @@ function promiseify(fn, data, options) {
  * @param {CompressionOptions} [options] Configuration for the compression.
  * @returns {Buffer} The compressed data.
  */
-nodeBzip2.compress;
+exports.compress = nodeBzip2.compress;
 
 /**
  * Decompresses the given data using Bzip2.
@@ -49,7 +49,7 @@ nodeBzip2.compress;
  * @param {DecompressionOptions} [options] Configuration for the decompression.
  * @returns {Buffer} The decompressed data.
  */
-nodeBzip2.decompress;
+exports.decompress = nodeBzip2.decompress;
 
 /**
  * Compresses the given data using BZip2 asynchronously.
@@ -57,7 +57,7 @@ nodeBzip2.decompress;
  * @param {CompressionOptions} [options] Configuration for the compression.
  * @returns {Promise<Buffer>} The compressed data.
  */
-function compressAsync(...args) {
+exports.compressAsync = function (...args) {
 	return promiseify(nodeBzip2.compressAsync, ...args);
 }
 
@@ -67,13 +67,6 @@ function compressAsync(...args) {
  * @param {DecompressionOptions} [options] Configuration for the decompression.
  * @returns {Promise<Buffer>} The decompressed data.
  */
-function decompressAsync(...args) {
+exports.decompressAsync = function (...args) {
 	return promiseify(nodeBzip2.decompressAsync, ...args);
 }
-
-module.exports = {
-	compress: nodeBzip2.compress,
-	decompress: nodeBzip2.decompress,
-	compressAsync,
-	decompressAsync
-};

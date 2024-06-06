@@ -1,27 +1,30 @@
 #pragma once
 
-#define BZ_NO_STDIO
+#include <assert.h>
+#include <vector>
+#include <algorithm>
+#include <cstring>
+#include <string>
 
+#ifdef NODE_BZIP2_WRAPPER
 #include <node.h>
 #include <nan.h>
+#endif
 
 extern "C"
 {
+#define BZ_NO_STDIO
 #include "../lib/bzip2/bzlib.h"
 }
+
+#define NOMINMAX
 
 #define AUTO_BUFFERING_THRESHOLD 1073741824 // 1 GiB
 #define TYPE_ERROR_MSG "data was not a string, buffer, or array"
 
 namespace NodeBzip2
 {
-	enum BufferingMode
-	{
-		Auto,
-		Always,
-		Never
-	};
-
+#ifdef NODE_VERSION
 	v8::Local<v8::Value> convertError(int result)
 	{
 		switch (result)
@@ -47,6 +50,14 @@ namespace NodeBzip2
 			return Nan::Error(buffer);
 		}
 	}
+#endif
+
+	enum BufferingMode
+	{
+		Auto,
+		Always,
+		Never
+	};
 
 	class DataSlice
 	{
@@ -73,7 +84,7 @@ namespace NodeBzip2
 
 		~DataSlice()
 		{
-			if (!borrowed)
+			if (!borrowed && data)
 			{
 				delete[] data;
 			}
@@ -107,12 +118,12 @@ namespace NodeBzip2
 		unsigned int bz_error;
 		std::vector<char> data;
 
-		Result(unsigned int bz_error, std::vector<char> data) : bz_error(bz_error), data(data) {}
+		Result(unsigned int bz_error, std::vector<char> &&data) : bz_error(bz_error), data(std::move(data)) {}
 
 	public:
-		static Result ok(std::vector<char> data)
+		static Result ok(std::vector<char> &&data)
 		{
-			return Result(BZ_OK, data);
+			return Result(BZ_OK, std::move(data));
 		}
 
 		static Result error(unsigned int bz_error)
@@ -145,14 +156,33 @@ namespace NodeBzip2
 
 		static void NodeGc(char *data, void *hint)
 		{
+			printf("NodeGc\n");
 			delete static_cast<Result *>(hint);
+		}
+
+		Result(Result &&other)
+		{
+			bz_error = other.bz_error;
+			data = std::move(other.data);
+
+			other.bz_error = BZ_OK;
+			other.data = std::vector<char>();
+		}
+
+		Result &operator=(Result &&other)
+		{
+			bz_error = other.bz_error;
+			data = std::move(other.data);
+
+			other.bz_error = BZ_OK;
+			other.data = std::vector<char>();
+
+			return *this;
 		}
 
 		// Move only
 		Result(const Result &) = delete;
 		Result &operator=(const Result &) = delete;
-		Result(Result &&) = default;
-		Result &operator=(Result &&) = default;
 	};
 
 	class Options
@@ -160,7 +190,9 @@ namespace NodeBzip2
 	public:
 		bool hasError;
 
-		Options(): hasError(false) {}
+		Options() : hasError(false) {}
+
+#ifdef NODE_VERSION
 		Options(const v8::Local<v8::Object> &options) : Options() {}
 
 	protected:
@@ -169,6 +201,7 @@ namespace NodeBzip2
 			hasError = true;
 			Nan::ThrowTypeError(msg);
 		}
+#endif
 	};
 
 	template <typename T>

@@ -14,6 +14,7 @@ namespace NodeBzip2
 			small = false;
 		}
 
+#ifdef NODE_VERSION
 		DecompressionOptions(const v8::Local<v8::Object> &options) : DecompressionOptions()
 		{
 			if (Nan::Has(options, Nan::New("small").ToLocalChecked()).FromJust())
@@ -30,9 +31,10 @@ namespace NodeBzip2
 				}
 			}
 		}
+#endif
 	};
 
-	Result DecompressRaw(DataSlice &data, const DecompressionOptions &options)
+	Result DecompressRaw(const DataSlice &data, const DecompressionOptions &options)
 	{
 		bz_stream strm;
 		strm.bzalloc = NULL;
@@ -70,7 +72,7 @@ namespace NodeBzip2
 
 		if (result == BZ_OK)
 		{
-			return Result::ok(out);
+			return Result::ok(std::move(out));
 		}
 		else
 		{
@@ -78,6 +80,7 @@ namespace NodeBzip2
 		}
 	}
 
+#ifdef NODE_VERSION
 	bool DecompressMethod(Nan::NAN_METHOD_ARGS_TYPE &info, Context<DecompressionOptions> &context)
 	{
 		if (info.Length() < 1)
@@ -144,10 +147,17 @@ namespace NodeBzip2
 
 		if (!result.hasError())
 		{
+			/*
+			// https://stackoverflow.com/questions/65797684/node-add-on-nannewbuffer-causes-memory-leak
+
 			Result *resultAlloc = new Result(std::move(result));
 			std::vector<char> *out = resultAlloc->getData();
 
 			auto buffer = Nan::NewBuffer(out->data(), out->size(), Result::NodeGc, resultAlloc);
+			*/
+
+			std::vector<char> *out = result.getData();
+			auto buffer = Nan::CopyBuffer(out->data(), out->size());
 			info.GetReturnValue().Set(buffer.ToLocalChecked());
 		}
 		else
@@ -155,4 +165,5 @@ namespace NodeBzip2
 			Nan::ThrowError(convertError(result.getError()));
 		}
 	}
+#endif
 }

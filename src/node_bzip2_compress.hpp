@@ -16,6 +16,7 @@ namespace NodeBzip2
 			bufMode = BufferingMode::Auto;
 		}
 
+#ifdef NODE_VERSION
 		CompressionOptions(const v8::Local<v8::Object> &options) : CompressionOptions()
 		{
 			if (Nan::Has(options, Nan::New("level").ToLocalChecked()).FromJust())
@@ -64,9 +65,10 @@ namespace NodeBzip2
 				}
 			}
 		}
+#endif
 	};
 
-	Result CompressRawUnbuffered(DataSlice &task, const int level)
+	Result CompressRawUnbuffered(const DataSlice &task, const int level)
 	{
 		std::vector<char> out;
 
@@ -90,10 +92,10 @@ namespace NodeBzip2
 		out.resize(outSize);
 		out.shrink_to_fit();
 
-		return Result::ok(out);
+		return Result::ok(std::move(out));
 	}
 
-	Result CompressRawBuffered(DataSlice &task, const int level)
+	Result CompressRawBuffered(const DataSlice &task, const int level)
 	{
 		bz_stream strm;
 		strm.bzalloc = NULL;
@@ -134,10 +136,10 @@ namespace NodeBzip2
 
 		result = BZ2_bzCompressEnd(&strm);
 
-		return Result::ok(out);
+		return Result::ok(std::move(out));
 	}
 
-	Result CompressRaw(DataSlice &task, const CompressionOptions &options)
+	Result CompressRaw(const DataSlice &task, const CompressionOptions &options)
 	{
 		if (options.bufMode == BufferingMode::Always || (options.bufMode == BufferingMode::Auto && task.length >= AUTO_BUFFERING_THRESHOLD))
 		{
@@ -149,6 +151,7 @@ namespace NodeBzip2
 		}
 	}
 
+#ifdef NODE_VERSION
 	bool CompressMethod(Nan::NAN_METHOD_ARGS_TYPE &info, Context<CompressionOptions> &context)
 	{
 		if (info.Length() < 1)
@@ -222,10 +225,17 @@ namespace NodeBzip2
 
 		if (!result.hasError())
 		{
+			/*
+			// https://stackoverflow.com/questions/65797684/node-add-on-nannewbuffer-causes-memory-leak
+
 			Result *resultAlloc = new Result(std::move(result));
 			std::vector<char> *out = resultAlloc->getData();
 
 			auto buffer = Nan::NewBuffer(out->data(), out->size(), Result::NodeGc, resultAlloc);
+			*/
+
+			std::vector<char> *out = result.getData();
+			auto buffer = Nan::CopyBuffer(out->data(), out->size());
 			info.GetReturnValue().Set(buffer.ToLocalChecked());
 		}
 		else
@@ -233,4 +243,5 @@ namespace NodeBzip2
 			Nan::ThrowError(convertError(result.getError()));
 		}
 	}
+#endif
 }
