@@ -16,7 +16,7 @@ npm install node-bzip2 --save
 
 ## Usage
 
-The package exposes two functions: `compress` and `decompress`.
+The package exposes two functions: `compress` and `decompress` (and their respective async versions `compressAsync` and `decompressAsync`).
 
 Both functions can take a `string`, [`Buffer`](https://nodejs.org/api/buffer.html), or [typed array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Typed_arrays) as input and return a [`Buffer`](https://nodejs.org/api/buffer.html) containing the compressed or decompressed data.
 
@@ -25,8 +25,31 @@ Additional options such as compression level and buffering behavior can be passe
 ```javascript
 const bzip2 = require('node-bzip2');
 
-const compressedBytes = bzip2.compress('Hello, world!', { level: 9, buffering: 'auto' }); // Compress some data
-const decompressedBytes = bzip2.decompress(compressed); // Decompress the data
-const decompressed = (new TextDecoder('utf8')).decode(decompressedBytes); // Decode the decompressed data as a UTF-8 string
+// Compress some data
+const compressedBytes = bzip2.compress('Hello, world!', { level: 9, buffering: 'auto' });
+
+// Decompress the data
+const decompressedBytes = bzip2.decompress(compressedBytes);
+
+// Decode the decompressed data as a UTF-8 string
+const decompressed = (new TextDecoder('utf8')).decode(decompressedBytes);
+
+console.log(decompressed); // Hello, world!
+```
+
+You can also use the async functions to compress and decompress data asynchronously:
+
+```javascript
+const bzip2 = require('node-bzip2');
+
+// Compress some data
+const compressedBytes = await bzip2.compressAsync('Hello, world!', { level: 9, buffering: 'auto' });
+
+// Decompress the data
+const decompressedBytes = await bzip2.decompressAsync(compressedBytes);
+
+// Decode the decompressed data as a UTF-8 string
+const decompressed = (new TextDecoder('utf8')).decode(decompressedBytes);
+
 console.log(decompressed); // Hello, world!
 ```
